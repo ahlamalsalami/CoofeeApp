@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/cart.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class OrdersPage extends StatelessWidget {
   const OrdersPage({super.key});
@@ -70,81 +71,89 @@ class OrdersPage extends StatelessWidget {
                         horizontal: 12,
                         vertical: 6,
                       ),
-                      child: ListTile(
-                        leading:
-                            it.image != null
-                                ? CircleAvatar(
-                                  backgroundImage: AssetImage(it.image!),
-                                )
-                                : const CircleAvatar(
-                                  child: Icon(Icons.local_cafe),
-                                ),
-                        title: Text(it.name),
-                        subtitle: Text(
-                          'سعر الوحدة: ${it.price} - الكمية: ${it.quantity}',
+                      child: Slidable(
+                        key: ValueKey(it.id),
+                        endActionPane: ActionPane(
+                          motion: const ScrollMotion(),
+                          children: [
+                            SlidableAction(
+                              onPressed: (ctx) {
+                                Provider.of<Cart>(
+                                  context,
+                                  listen: false,
+                                ).removeItem(it.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('${it.name} تم حذفه')),
+                                );
+                              },
+                              backgroundColor: Colors.redAccent,
+                              foregroundColor: Colors.white,
+                              icon: Icons.delete,
+                              label: 'حذف',
+                            ),
+                          ],
                         ),
-                        trailing: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minWidth: 150,
-                            maxWidth: 220,
+                        child: ListTile(
+                          leading:
+                              it.image != null
+                                  ? CircleAvatar(
+                                    backgroundImage: AssetImage(it.image!),
+                                  )
+                                  : const CircleAvatar(
+                                    child: Icon(Icons.local_cafe),
+                                  ),
+                          title: Text(it.name),
+                          subtitle: Text(
+                            'سعر الوحدة: ${it.price} - الكمية: ${it.quantity}',
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                padding: const EdgeInsets.all(4),
-                                iconSize: 26,
-                                icon: const Icon(
-                                  Icons.remove_circle,
-                                  color: Colors.orange,
+                          trailing: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              minWidth: 150,
+                              maxWidth: 220,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  padding: const EdgeInsets.all(4),
+                                  iconSize: 26,
+                                  icon: const Icon(
+                                    Icons.remove_circle,
+                                    color: Colors.orange,
+                                  ),
+                                  onPressed: () {
+                                    Provider.of<Cart>(
+                                      context,
+                                      listen: false,
+                                    ).decreaseItem(it.id);
+                                  },
                                 ),
-                                onPressed: () {
-                                  Provider.of<Cart>(
-                                    context,
-                                    listen: false,
-                                  ).decreaseItem(it.id);
-                                },
-                              ),
-                              Text(
-                                '${it.quantity}',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              IconButton(
-                                padding: const EdgeInsets.all(4),
-                                iconSize: 26,
-                                icon: const Icon(
-                                  Icons.add_circle,
-                                  color: Colors.green,
+                                Text(
+                                  '${it.quantity}',
+                                  style: const TextStyle(fontSize: 16),
                                 ),
-                                onPressed: () {
-                                  Provider.of<Cart>(
-                                    context,
-                                    listen: false,
-                                  ).addItem(
-                                    it.id,
-                                    it.name,
-                                    it.price,
-                                    image: it.image,
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                padding: const EdgeInsets.all(4),
-                                iconSize: 26,
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.redAccent,
+                                IconButton(
+                                  padding: const EdgeInsets.all(4),
+                                  iconSize: 26,
+                                  icon: const Icon(
+                                    Icons.add_circle,
+                                    color: Colors.green,
+                                  ),
+                                  onPressed: () {
+                                    Provider.of<Cart>(
+                                      context,
+                                      listen: false,
+                                    ).addItem(
+                                      it.id,
+                                      it.name,
+                                      it.price,
+                                      image: it.image,
+                                    );
+                                  },
                                 ),
-                                tooltip: 'حذف',
-                                onPressed: () {
-                                  Provider.of<Cart>(
-                                    context,
-                                    listen: false,
-                                  ).removeItem(it.id);
-                                },
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),

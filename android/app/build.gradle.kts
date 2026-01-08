@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.example.ahlam_coffee"
     compileSdk = flutter.compileSdkVersion
+    // Use the SDK/Flutter-managed NDK version when available.
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
