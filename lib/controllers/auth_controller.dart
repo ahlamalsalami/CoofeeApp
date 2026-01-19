@@ -1,21 +1,20 @@
-/// بنية MVC - طبقة النموذج
+/// بنية MVC - طبقة التحكم
 ///
-/// يمثل هذا النموذج بيانات المصادقة والحالة في نمط MVC.
-/// يقوم بتخزين معلومات مصادقة المستخدم وبيانات الجلسة.
+/// تعالج وحدة التحكم هذه منطق أعمال المصادقة في نمط MVC.
+/// يدير حالة المستخدم، ووظيفة تسجيل الدخول/الخروج، واستمرارية بيانات المستخدم.
 ///
 /// جزء من بنية MVC حيث:
-/// - النموذج: بنيات البيانات (هذا الملف)
+/// - النموذج: هياكل البيانات في /models/
 /// - العرض: مكونات واجهة المستخدم في /views/
-/// - وحدة التحكم: منطق الأعمال في /وحدات التحكم/
+/// - وحدة التحكم: منطق الأعمال (هذا الملف)
 
 import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Auth with ChangeNotifier {
-  bool _isAuth = false;
-  String? _email;
+class AuthController extends GetxController {
+  var isAuth = false.obs;
+  var email = ''.obs;
 
   // users stored as map email -> {"username":..., "password":...}
   final Map<String, Map<String, String>> _users = {};
@@ -23,9 +22,13 @@ class Auth with ChangeNotifier {
   static const _kUsersKey = 'ah_users';
   static const _kCurrentUserKey = 'ah_current_user';
 
-  bool get isAuth => _isAuth;
-  String? get email => _email;
   bool get hasUsers => _users.isNotEmpty;
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadFromPrefs();
+  }
 
   // Load users and current session from SharedPreferences
   Future<void> loadFromPrefs() async {
@@ -50,13 +53,12 @@ class Auth with ChangeNotifier {
     }
     final current = prefs.getString(_kCurrentUserKey);
     if (current != null && _users.containsKey(current)) {
-      _isAuth = true;
-      _email = current;
+      isAuth.value = true;
+      email.value = current;
     } else {
-      _isAuth = false;
-      _email = null;
+      isAuth.value = false;
+      email.value = '';
     }
-    notifyListeners();
   }
 
   Future<void> _saveUsers() async {
@@ -65,47 +67,47 @@ class Auth with ChangeNotifier {
     await prefs.setString(_kUsersKey, encoded);
   }
 
-  Future<void> _setCurrentUser(String? email) async {
+  Future<void> _setCurrentUser(String? emailValue) async {
     final prefs = await SharedPreferences.getInstance();
-    if (email == null) {
+    if (emailValue == null) {
       await prefs.remove(_kCurrentUserKey);
     } else {
-      await prefs.setString(_kCurrentUserKey, email);
+      await prefs.setString(_kCurrentUserKey, emailValue);
     }
   }
 
   // Sign up a new user (simple: email, username, password). Returns false if email exists.
-  Future<bool> signup(String email, String password, {String? username}) async {
+  Future<bool> signup(String emailValue, String password, {String? username}) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
-    final key = email.trim().toLowerCase();
+    final key = emailValue.trim().toLowerCase();
     if (_users.containsKey(key)) return false;
     _users[key] = {'username': username?.trim() ?? '', 'password': password};
     await _saveUsers();
-    _isAuth = true;
-    _email = key;
+    isAuth.value = true;
+    this.email.value = key;
     await _setCurrentUser(key);
-    notifyListeners();
+    update();
     return true;
   }
 
   // Login checks stored credentials.
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String emailValue, String password) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
-    final key = email.trim().toLowerCase();
+    final key = emailValue.trim().toLowerCase();
     final user = _users[key];
     if (user == null) return false;
     if (user['password'] != password) return false;
-    _isAuth = true;
-    _email = key;
+    isAuth.value = true;
+    this.email.value = key;
     await _setCurrentUser(key);
-    notifyListeners();
+    update();
     return true;
   }
 
   Future<void> logout() async {
-    _isAuth = false;
-    _email = null;
+    isAuth.value = false;
+    email.value = '';
     await _setCurrentUser(null);
-    notifyListeners();
+    update();
   }
 }

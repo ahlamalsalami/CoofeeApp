@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import 'models/cart.dart';
-import 'models/auth.dart';
-import 'pages/products_page.dart';
-import 'pages/orders_page.dart';
-import 'pages/settings_page.dart';
-import 'pages/home_page.dart';
-import 'pages/auth_page.dart';
+import 'package:get/get.dart';
+import 'routes/app_pages.dart';
+import 'services/language_service.dart';
+import 'languages/ar_translation.dart';
+import 'languages/en_translation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final auth = Auth();
-  await auth.loadFromPrefs();
-  runApp(MyApp(auth: auth));
+  
+  // Initialize GetX services
+  Get.put(LanguageService());
+  
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final Auth auth;
-
-  const MyApp({super.key, required this.auth});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,42 +25,41 @@ class MyApp extends StatelessWidget {
       onSurface: Colors.black,
     );
 
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: auth),
-        ChangeNotifierProvider(create: (_) => Cart()),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'YA Coffee',
-        theme: ThemeData(
-          primarySwatch: Colors.brown,
-          colorScheme: colorScheme,
-          scaffoldBackgroundColor: const Color(0xFFFFF8F1),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.brown,
-            foregroundColor: Colors.white,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.brown,
-              foregroundColor: colorScheme.onPrimary,
-            ),
-          ),
-          // remove default blue highlights by setting splash and highlight colors
-          // use withAlpha to avoid precision-loss deprecation of withOpacity
-          splashColor: colorScheme.primary.withAlpha((0.12 * 255).round()),
-          highlightColor: colorScheme.primary.withAlpha((0.08 * 255).round()),
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'YA Coffee',
+      translations: MyTranslations(),
+      locale: Locale(LanguageService.to.getCurrentLanguage()),
+      fallbackLocale: const Locale('ar'),
+      theme: ThemeData(
+        primarySwatch: Colors.brown,
+        colorScheme: colorScheme,
+        scaffoldBackgroundColor: const Color(0xFFFFF8F1),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.brown,
+          foregroundColor: Colors.white,
         ),
-        initialRoute: '/auth',
-        routes: {
-          '/': (context) => const HomePage(),
-          '/products': (context) => ProductsPage(),
-          '/orders': (context) => OrdersPage(),
-          '/settings': (context) => SettingsPage(),
-          '/auth': (context) => const AuthPage(),
-        },
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.brown,
+            foregroundColor: colorScheme.onPrimary,
+          ),
+        ),
+        // remove default blue highlights by setting splash and highlight colors
+        // use withAlpha to avoid precision-loss deprecation of withOpacity
+        splashColor: colorScheme.primary.withAlpha((0.12 * 255).round()),
+        highlightColor: colorScheme.primary.withAlpha((0.08 * 255).round()),
       ),
+      initialRoute: AppPages.INITIAL,
+      getPages: AppPages.routes,
     );
   }
+}
+
+class MyTranslations extends Translations {
+  @override
+  Map<String, Map<String, String>> get keys => {
+        'ar': ArTranslation.translation,
+        'en': EnTranslation.translation,
+      };
 }

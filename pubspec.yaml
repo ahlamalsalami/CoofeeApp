@@ -40,6 +40,8 @@ dependencies:
   path: ^1.8.3
   image_picker: ^1.2.1
   flutter_slidable: ^4.0.3
+  get: ^4.7.3
+  flutter_launcher_icons: ^0.13.1
 
 dev_dependencies:
   flutter_test:
@@ -96,3 +98,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
